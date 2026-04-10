@@ -1,6 +1,6 @@
 # Client TCP Echo en Rust : version `std` vs Tokio
 
-Ce projet contient deux clients TCP qui se connectent à un serveur echo sur `localhost:1234` et envoient le message `"Hello World! "`.
+Ce projet contient deux clients TCP qui se connectent à un serveur echo sur `localhost:1234` et envoient le message `"Hello World!"`.
 
 ## 1. `echo-client-std` (version synchrone)
 
@@ -30,7 +30,39 @@ Ce projet contient deux clients TCP qui se connectent à un serveur echo sur `lo
   - la boucle d’événements (réveille les tâches quand le réseau est prêt),  
   - le scheduler des tâches asynchrones.
 
-## 4. À retenir
+## 4. `sirocco` : serveur TCP basique
+
+- Le dossier `sirocco` contient un petit serveur TCP simple basé sur le module réseau standard de Rust.  
+  - Utilise `std::net::TcpListener` pour écouter les connexions entrantes.
+- Le serveur démarre sur l’adresse `127.0.0.1:5678` et affiche un message pour chaque nouvelle connexion :
+  ```rust
+  sirocco starting 127.0.0.1:5678
+  sirocco listening 127.0.0.1:5678
+  connection established!
+  ```
+- Exemple minimal de code :
+  ```rust
+  use std::net::TcpListener;
+
+  const SIROCCO_SERVER_ADDRESS: &str = "127.0.0.1:5678";
+
+  fn main() {
+      println!("sirocco starting {}", SIROCCO_SERVER_ADDRESS);
+
+      let listener = TcpListener::bind(SIROCCO_SERVER_ADDRESS).unwrap();
+
+      println!("sirocco listening {}", SIROCCO_SERVER_ADDRESS);
+
+      for stream in listener.incoming() {
+          let _stream = stream.unwrap();
+          println!("connection established!");
+      }
+  }
+  ```
+- Ce serveur est **bloquant**, comme la version `std` du client echo. Il est utile pour tester des connexions TCP locales ou expérimenter la création d’un serveur basique avant de passer à Tokio.
+
+## 5. À retenir
 
 - `std` : simple, bloquant, adapté aux petits cas.  
-- Tokio : plus efficace pour du réseau I/O‑bound, idéal pour clients/serveurs qui gèrent beaucoup de connexions concurrentes.
+- Tokio : plus efficace pour du réseau I/O‑bound, idéal pour clients/serveurs qui gèrent beaucoup de connexions concurrentes.  
+- `sirocco` : exemple de **serveur TCP minimaliste** basé sur `std`, idéal pour tester la connectivité de base avant d’utiliser la logique asynchrone de Tokio.
